@@ -236,22 +236,27 @@ def build_estimate_html(result: FeeResult, info: EstimateInfo) -> str:
     text-align: right;
     font-size: 9pt;
     color: #2d2d2d;
+    min-width: 180px;
+    flex-shrink: 0;
   }}
   .meta-row {{
     display: flex;
     justify-content: flex-end;
     gap: 12px;
     margin-bottom: 3px;
+    white-space: nowrap;
   }}
   .meta-label {{
     color: #999;
     font-size: 8pt;
     letter-spacing: 0.1em;
+    white-space: nowrap;
   }}
   .meta-value {{
     font-family: "Inter", sans-serif;
     font-weight: 400;
     color: #1a1a1a;
+    white-space: nowrap;
   }}
 
   .addressee {{
