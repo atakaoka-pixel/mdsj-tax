@@ -350,7 +350,13 @@ def render_estimate_section(result):
                 placeholder="Q-2026-0513-001",
             )
         with c4:
-            valid_days = st.number_input("有効期限（日数）", min_value=1, max_value=180, value=30)
+            valid_days = st.number_input(
+                "有効期限",
+                min_value=1,
+                max_value=180,
+                value=30,
+                help="発行日からの日数。例：30で発行日から30日間有効",
+            )
         with c5:
             person_in_charge = st.text_input(
                 "担当者名（任意）",
