@@ -357,6 +357,39 @@ def render_estimate_section(result):
                 value=st.session_state.get("est_term", "1事業年度（自動更新）"),
             )
 
+        st.markdown("##### 💰 確定見積金額（値引き等を反映）")
+        st.caption("自動算定額からの値引きをする場合、ここで金額を編集してください。変更がなければそのままでOK。")
+        cc1, cc2 = st.columns(2)
+        with cc1:
+            final_monthly = st.number_input(
+                "確定 月額顧問報酬（円）",
+                min_value=0,
+                value=int(result.monthly_total),
+                step=1000,
+                help=f"自動算定額: ¥{result.monthly_total:,}",
+            )
+        with cc2:
+            final_closing = st.number_input(
+                "確定 決算申告料（円）",
+                min_value=0,
+                value=int(result.closing_fee),
+                step=1000,
+                help=f"自動算定額: ¥{result.closing_fee:,}（月額×5）",
+            )
+        final_annual_preview = int(final_monthly) * 12 + int(final_closing)
+        diff = final_annual_preview - result.annual_total
+        if diff == 0:
+            st.markdown(
+                f"確定年間総額：**¥{final_annual_preview:,}**（自動算定と同額）"
+            )
+        else:
+            sign = "▼ 値引き" if diff < 0 else "▲ 上乗せ"
+            st.markdown(
+                f"確定年間総額：**¥{final_annual_preview:,}**　"
+                f"<span style='color:#b71c1c;'>（{sign} ¥{abs(diff):,}）</span>",
+                unsafe_allow_html=True,
+            )
+
         notes = st.text_area(
             "備考（任意）",
             value=st.session_state.get("est_notes", ""),
@@ -375,6 +408,10 @@ def render_estimate_section(result):
         st.session_state["est_term"] = contract_term
         st.session_state["est_notes"] = notes
 
+        # 自動算定値と同じなら None を渡して「値引きなし」として処理
+        fm = int(final_monthly) if int(final_monthly) != result.monthly_total else None
+        fc = int(final_closing) if int(final_closing) != result.closing_fee else None
+
         info = EstimateInfo(
             client_name=client_name.strip(),
             issue_date=issue_date,
@@ -382,6 +419,8 @@ def render_estimate_section(result):
             valid_days=int(valid_days),
             contract_term=contract_term.strip() or "1事業年度（自動更新）",
             notes=notes.strip(),
+            final_monthly=fm,
+            final_closing=fc,
         )
         try:
             with st.spinner("見積書PDFを生成中…"):

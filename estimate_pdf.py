@@ -54,6 +54,9 @@ class EstimateInfo:
     valid_days: int = 30
     contract_term: str = "1事業年度（自動更新）"
     notes: str = ""
+    # 値引き等を反映した最終提示金額（円）。Noneなら自動算定値をそのまま使う。
+    final_monthly: Optional[int] = None
+    final_closing: Optional[int] = None
 
 
 def _find_edge() -> str:
@@ -70,6 +73,53 @@ def _fmt_yen(n: int) -> str:
 def build_estimate_html(result: FeeResult, info: EstimateInfo) -> str:
     valid_until = info.issue_date + timedelta(days=info.valid_days)
     logo_uri = _logo_data_uri()
+
+    # 自動算定値
+    auto_monthly = result.monthly_total
+    auto_closing = result.closing_fee
+    auto_annual = result.annual_total
+
+    # 確定（提示）金額: 未指定なら自動値と同じ
+    final_monthly = info.final_monthly if info.final_monthly is not None else auto_monthly
+    final_closing = info.final_closing if info.final_closing is not None else auto_closing
+    final_annual = final_monthly * 12 + final_closing
+
+    # 値引きの有無判定
+    has_discount = (final_monthly != auto_monthly) or (final_closing != auto_closing)
+
+    # 各セルのHTML（値引きあり/なしで切替）
+    if has_discount:
+        annual_html = (
+            f'<div class="price-compare">'
+            f'<div class="price-list">定価 ¥{_fmt_yen(auto_annual)}</div>'
+            f'<div class="price-final">¥{_fmt_yen(final_annual)}<span class="price-final-yen">JPY</span></div>'
+            f'</div>'
+        )
+        monthly_html = (
+            f'<div class="sub-compare-list">定価 ¥{_fmt_yen(auto_monthly)}</div>'
+            f'<div class="sub-value sub-compare-final">¥{_fmt_yen(final_monthly)}'
+            f'<span class="yen-unit">円 / 月</span></div>'
+        )
+        closing_html = (
+            f'<div class="sub-compare-list">定価 ¥{_fmt_yen(auto_closing)}</div>'
+            f'<div class="sub-value sub-compare-final">¥{_fmt_yen(final_closing)}'
+            f'<span class="yen-unit">円</span></div>'
+        )
+        closing_note = "※ ご提示価格に値引き等を反映済"
+    else:
+        annual_html = (
+            f'<div class="hero-value">¥{_fmt_yen(auto_annual)}'
+            f'<span class="hero-yen">JPY</span></div>'
+        )
+        monthly_html = (
+            f'<div class="sub-value">¥{_fmt_yen(auto_monthly)}'
+            f'<span class="yen-unit">円 / 月</span></div>'
+        )
+        closing_html = (
+            f'<div class="sub-value">¥{_fmt_yen(auto_closing)}'
+            f'<span class="yen-unit">円</span></div>'
+        )
+        closing_note = "※ 月額顧問報酬の5ヶ月分"
 
     included = [
         "税務顧問業務（法人税・法人住民税・法人事業税・消費税・源泉所得税の税務代理及び税務相談）",
@@ -240,34 +290,26 @@ def build_estimate_html(result: FeeResult, info: EstimateInfo) -> str:
   }}
   .hero {{
     flex: 1.55;
-    background: #1a1a1a;
-    color: #fff;
-    padding: 14px 22px;
+    background: #fff;
+    color: #1a1a1a;
+    border: 1px solid #e4e4e4;
+    border-left: 4px solid #b71c1c;
+    padding: 10px 22px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    position: relative;
-    overflow: hidden;
-  }}
-  .hero::before {{
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 6px;
-    height: 100%;
-    background: #b71c1c;
   }}
   .hero-label-en {{
     font-family: "Inter", sans-serif;
     font-size: 7pt;
     color: #b71c1c;
     letter-spacing: 0.3em;
-    font-weight: 500;
+    font-weight: 600;
     margin-bottom: 2px;
   }}
   .hero-label {{
     font-size: 9pt;
+    color: #666;
     letter-spacing: 0.15em;
     margin-bottom: 6px;
   }}
@@ -278,19 +320,62 @@ def build_estimate_html(result: FeeResult, info: EstimateInfo) -> str:
     line-height: 1;
     letter-spacing: -0.02em;
     text-align: right;
+    color: #1a1a1a;
   }}
   .hero-yen {{
     font-size: 13pt;
     margin-left: 4px;
     font-weight: 300;
-    color: #b0b0b0;
+    color: #999;
   }}
   .hero-tax {{
     font-size: 7pt;
-    color: #b0b0b0;
+    color: #999;
     text-align: right;
     margin-top: 2px;
     letter-spacing: 0.1em;
+  }}
+  /* 定価/確定価格の対比表示 */
+  .price-compare {{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0;
+  }}
+  .price-list {{
+    font-family: "Inter", sans-serif;
+    font-size: 8pt;
+    color: #aaa;
+    text-decoration: line-through;
+    font-weight: 400;
+    line-height: 1.2;
+  }}
+  .price-final {{
+    font-family: "Inter", sans-serif;
+    font-size: 26pt;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: #b71c1c;
+  }}
+  .price-final-yen {{
+    font-size: 11pt;
+    margin-left: 4px;
+    font-weight: 300;
+    color: #b71c1c;
+  }}
+  .sub-compare-list {{
+    font-family: "Inter", sans-serif;
+    font-size: 7pt;
+    color: #aaa;
+    text-decoration: line-through;
+    text-align: right;
+    margin-bottom: 0;
+    font-weight: 400;
+    line-height: 1.2;
+  }}
+  .sub-compare-final {{
+    color: #b71c1c !important;
   }}
 
   /* Sub cards (right column, stacked) */
@@ -305,7 +390,7 @@ def build_estimate_html(result: FeeResult, info: EstimateInfo) -> str:
     background: #fff;
     border: 1px solid #e4e4e4;
     border-left: 4px solid #b71c1c;
-    padding: 8px 14px;
+    padding: 6px 14px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -555,18 +640,18 @@ def build_estimate_html(result: FeeResult, info: EstimateInfo) -> str:
   <div class="hero">
     <div class="hero-label-en">ANNUAL TOTAL</div>
     <div class="hero-label">年間総額（税抜）</div>
-    <div class="hero-value">¥{_fmt_yen(result.annual_total)}<span class="hero-yen">JPY</span></div>
+    {annual_html}
     <div class="hero-tax">＋消費税</div>
   </div>
   <div class="sub-cards">
     <div class="sub-card">
       <div class="sub-label">月額顧問報酬（税抜）</div>
-      <div class="sub-value">¥{_fmt_yen(result.monthly_total)}<span class="yen-unit">円 / 月</span></div>
+      {monthly_html}
     </div>
     <div class="sub-card">
       <div class="sub-label">決算申告料（税抜）</div>
-      <div class="sub-value">¥{_fmt_yen(result.closing_fee)}<span class="yen-unit">円</span></div>
-      <div class="sub-note">※ 月額顧問報酬の5ヶ月分</div>
+      {closing_html}
+      <div class="sub-note">{closing_note}</div>
     </div>
   </div>
 </div>
@@ -645,7 +730,6 @@ def build_estimate_html(result: FeeResult, info: EstimateInfo) -> str:
 
 {notes_html}
 
-<div class="footer-stamp">— 御堂筋税理士法人 —</div>
 
 </body>
 </html>
