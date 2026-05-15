@@ -49,7 +49,7 @@ MASTER_CSV = BASE_DIR / "master.csv"
 
 st.set_page_config(
     page_title="税務顧問報酬見積りツール",
-    page_icon="📊",
+    page_icon=None,
     layout="wide",
 )
 
@@ -61,7 +61,7 @@ def _check_password() -> None:
     if st.session_state.get("_authenticated"):
         return
 
-    st.markdown("### 🔒 ログイン")
+    st.markdown("### ログイン")
     st.caption("社内共有用のパスワードを入力してください。")
     pw = st.text_input("パスワード", type="password", key="_pw_input", label_visibility="collapsed")
     if st.button("ログイン", type="primary"):
@@ -271,7 +271,7 @@ def render_result(result, df: pd.DataFrame):
                 "決算書分析と決算報告の実施",
                 "予定申告・届出関係",
             ]:
-                st.markdown(f"- ✅ {x}")
+                st.markdown(f"- {x}")
         with col_out:
             st.markdown("##### 別途報酬となるもの")
             for x in [
@@ -280,7 +280,7 @@ def render_result(result, df: pd.DataFrame):
                 "グループ通算制度・連結決算",
                 "年末調整、法定調書合計表、償却資産税",
             ]:
-                st.markdown(f"- ➖ {x}")
+                st.markdown(f"- {x}")
 
     with tab2:
         st.markdown("#### 算定内訳詳細")
@@ -328,7 +328,7 @@ def render_result(result, df: pd.DataFrame):
 def render_estimate_section(result):
     """お客様送付用の見積書（A4縦PDF）生成セクション。"""
     st.markdown("---")
-    st.markdown("### 📄 お客様送付用 見積書（A4縦 PDF）")
+    st.markdown("### お客様送付用 見積書（A4縦 PDF）")
     st.caption("以下を入力して『見積書を作成』を押すと、A4縦1ページのPDFをダウンロードできます。")
 
     with st.form("estimate_form"):
@@ -357,7 +357,7 @@ def render_estimate_section(result):
                 value=st.session_state.get("est_term", "1事業年度（自動更新）"),
             )
 
-        st.markdown("##### 💰 確定見積金額（値引き等を反映）")
+        st.markdown("##### 確定見積金額（値引き等を反映）")
         st.caption("自動算定額からの値引きをする場合、ここで金額を編集してください。変更がなければそのままでOK。")
         cc1, cc2 = st.columns(2)
         with cc1:
@@ -429,7 +429,7 @@ def render_estimate_section(result):
             filename = f"御見積書_{safe_name}_{issue_date.strftime('%Y%m%d')}.pdf"
             st.success("見積書を作成しました。下のボタンからダウンロードしてください。")
             st.download_button(
-                label=f"⬇ {filename} をダウンロード",
+                label=f"{filename} をダウンロード",
                 data=data,
                 file_name=filename,
                 mime="application/pdf",
@@ -449,7 +449,7 @@ def main():
 
     ex = st.session_state.get("extracted")
     if ex is not None:
-        with st.expander("📄 PDF抽出結果（参考）", expanded=False):
+        with st.expander("PDF抽出結果（参考）", expanded=False):
             st.json(
                 {
                     "売上高": ex.sales,
