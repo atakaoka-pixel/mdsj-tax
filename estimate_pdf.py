@@ -640,7 +640,7 @@ def build_estimate_html(result: FeeResult, info: EstimateInfo) -> str:
 <section class="addressee">
   <div class="addressee-left">
     <div class="client-name">{esc(info.client_name)}　御中</div>
-    <div class="addressee-msg">下記のとおり御見積申し上げます。何卒ご検討の程よろしくお願い申し上げます。</div>
+    <div class="addressee-msg">下記のとおり御見積申し上げます。<br>何卒ご検討の程よろしくお願い申し上げます。</div>
   </div>
   <div class="firm-info">
     {f'<img src="{logo_uri}" class="firm-logo" alt="御堂筋税理士法人">' if logo_uri else ''}
