@@ -440,7 +440,10 @@ def main():
         render_result(st.session_state["result"], df)
         render_estimate_section(st.session_state["result"])
     else:
-        st.info("左サイドバーで条件を入力するか、決算書PDFをアップロードしてください。")
+        if WEB_MODE:
+            st.info("左サイドバーで業種・売上高・経常利益・役員報酬・総資産を入力し、「お見積りを計算」を押してください。")
+        else:
+            st.info("左サイドバーで条件を入力するか、決算書PDFをアップロードしてください。")
 
 
 if __name__ == "__main__":
