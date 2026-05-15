@@ -356,13 +356,13 @@ def build_estimate_html(result: FeeResult, info: EstimateInfo) -> str:
     font-weight: 700;
     line-height: 1;
     letter-spacing: -0.02em;
-    color: #b71c1c;
+    color: #1a1a1a;
   }}
   .price-final-yen {{
     font-size: 11pt;
     margin-left: 4px;
     font-weight: 300;
-    color: #b71c1c;
+    color: #999;
   }}
   .sub-compare-list {{
     font-family: "Inter", sans-serif;
@@ -375,7 +375,7 @@ def build_estimate_html(result: FeeResult, info: EstimateInfo) -> str:
     line-height: 1.2;
   }}
   .sub-compare-final {{
-    color: #b71c1c !important;
+    color: #1a1a1a !important;
   }}
 
   /* Sub cards (right column, stacked) */
