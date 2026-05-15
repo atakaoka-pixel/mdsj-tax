@@ -350,12 +350,19 @@ def render_estimate_section(result):
                 placeholder="Q-2026-0513-001",
             )
         with c4:
-            valid_days = st.number_input("有効期限（発行日からの日数）", min_value=1, max_value=180, value=30)
+            valid_days = st.number_input("有効期限（日数）", min_value=1, max_value=180, value=30)
         with c5:
-            contract_term = st.text_input(
-                "契約期間表記",
-                value=st.session_state.get("est_term", "1事業年度（自動更新）"),
+            person_in_charge = st.text_input(
+                "担当者名（任意）",
+                value=st.session_state.get("est_person", ""),
+                placeholder="例：高岡 亜子",
+                help="入力すると見積書末尾の署名が「担当 〇〇」になります。空欄なら「代表社員 才木 正之」",
             )
+
+        contract_term = st.text_input(
+            "契約期間表記",
+            value=st.session_state.get("est_term", "1事業年度（自動更新）"),
+        )
 
         st.markdown("##### 確定見積金額（値引き等を反映）")
         st.caption("自動算定額からの値引きをする場合、ここで金額を編集してください。変更がなければそのままでOK。")
@@ -383,7 +390,7 @@ def render_estimate_section(result):
                 f"確定年間総額：**¥{final_annual_preview:,}**（自動算定と同額）"
             )
         else:
-            sign = "▼ 値引き" if diff < 0 else "▲ 上乗せ"
+            sign = "値引き" if diff < 0 else "上乗せ"
             st.markdown(
                 f"確定年間総額：**¥{final_annual_preview:,}**　"
                 f"<span style='color:#b71c1c;'>（{sign} ¥{abs(diff):,}）</span>",
@@ -407,6 +414,7 @@ def render_estimate_section(result):
         st.session_state["est_no"] = estimate_no
         st.session_state["est_term"] = contract_term
         st.session_state["est_notes"] = notes
+        st.session_state["est_person"] = person_in_charge
 
         # 自動算定値と同じなら None を渡して「値引きなし」として処理
         fm = int(final_monthly) if int(final_monthly) != result.monthly_total else None
@@ -421,6 +429,7 @@ def render_estimate_section(result):
             notes=notes.strip(),
             final_monthly=fm,
             final_closing=fc,
+            person_in_charge=person_in_charge.strip(),
         )
         try:
             with st.spinner("見積書PDFを生成中…"):

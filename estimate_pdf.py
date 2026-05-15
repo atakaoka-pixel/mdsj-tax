@@ -57,6 +57,8 @@ class EstimateInfo:
     # 値引き等を反映した最終提示金額（円）。Noneなら自動算定値をそのまま使う。
     final_monthly: Optional[int] = None
     final_closing: Optional[int] = None
+    # 見積担当者名。空文字なら「代表社員 才木 正之」を表示。
+    person_in_charge: str = ""
 
 
 def _find_edge() -> str:
@@ -73,6 +75,12 @@ def _fmt_yen(n: int) -> str:
 def build_estimate_html(result: FeeResult, info: EstimateInfo) -> str:
     valid_until = info.issue_date + timedelta(days=info.valid_days)
     logo_uri = _logo_data_uri()
+
+    # 署名行：担当者名が指定されていれば「担当 〇〇」、無ければ代表社員を表示
+    if info.person_in_charge.strip():
+        rep_line = f"担当　{html.escape(info.person_in_charge.strip())}"
+    else:
+        rep_line = FIRM_REPRESENTATIVE
 
     # 自動算定値
     auto_monthly = result.monthly_total
@@ -632,7 +640,7 @@ def build_estimate_html(result: FeeResult, info: EstimateInfo) -> str:
   <div class="firm-info">
     {f'<img src="{logo_uri}" class="firm-logo" alt="御堂筋税理士法人">' if logo_uri else ''}
     <div class="firm-address">{FIRM_ADDRESS}</div>
-    <div class="firm-rep">{FIRM_REPRESENTATIVE}</div>
+    <div class="firm-rep">{rep_line}</div>
   </div>
 </section>
 
@@ -758,9 +766,10 @@ def _build_via_edge(edge: str, html_str: str) -> bytes:
             f"--print-to-pdf={pdf_path}",
             f"file:///{html_path.as_posix()}",
         ]
-        result_proc = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+        result_proc = subprocess.run(cmd, capture_output=True, timeout=60)
         if not pdf_path.exists():
-            raise RuntimeError(f"Edge PDF生成失敗: {result_proc.stderr}")
+            err = result_proc.stderr.decode("utf-8", errors="replace") if result_proc.stderr else ""
+            raise RuntimeError(f"Edge PDF生成失敗: {err}")
         return pdf_path.read_bytes()
 
 
