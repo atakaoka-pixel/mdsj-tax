@@ -1,0 +1,7 @@
+streamlit>=1.40
+anthropic>=0.40
+pandas>=2.2
+python-dotenv>=1.0
+# WeasyPrintはLinux環境（Streamlit Cloud等）でのPDF生成用。
+# Windowsローカル環境ではGTK Runtime未導入だとインストール失敗するため除外。
+weasyprint>=60.0; sys_platform != "win32"

@@ -1,0 +1,6 @@
+libpango-1.0-0
+libpangoft2-1.0-0
+libcairo2
+libharfbuzz0b
+libfribidi0
+fonts-noto-cjk
